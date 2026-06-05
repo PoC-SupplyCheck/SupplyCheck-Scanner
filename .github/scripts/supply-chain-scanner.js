@@ -318,17 +318,42 @@ async function readFile(github, owner, repo, p, sha) {
 }
 
 // ───────────────────────── EXPORTED API ─────────────────────────
-async function listRepos({ github, context, scope, includeArchived, includeForks }) {
-  let repos;
+
+
+async function listRepos({ github, context, scope, orgs, currentOrg, includeArchived, includeForks }) {
+  let repos = [];
+
   if (scope === 'this-repo-only') {
-    const { data } = await github.rest.repos.get({ owner: context.repo.owner, repo: context.repo.repo });
-    repos = [data];
-  } else {
-    const visibility = scope === 'public-only' ? 'public' : 'all';
-    repos = await github.paginate(github.rest.repos.listForAuthenticatedUser, {
-      visibility, affiliation: 'owner', per_page: 100,
+    const { data } = await github.rest.repos.get({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
     });
+    repos = [data];
+
+  } else if (scope === 'current-org') {
+    repos = await github.paginate(github.rest.repos.listForOrg, {
+      org: currentOrg,
+      type: 'all',
+      per_page: 100,
+    });
+
+  } else if (scope === 'multi-orgs') {
+    if (!orgs || !orgs.length) {
+      throw new Error('scope=multi-orgs nécessite la liste des orgs (input "orgs")');
+    }
+    for (const org of orgs) {
+      try {
+        const r = await github.paginate(github.rest.repos.listForOrg, {
+          org, type: 'all', per_page: 100,
+        });
+        repos.push(...r);
+      } catch (e) {
+        // Si l'App n'est pas installée sur cette org → on saute proprement
+        console.warn(`⚠️ Org ${org}: ${e.message}`);
+      }
+    }
   }
+
   return repos
     .filter(r => includeArchived || !r.archived)
     .filter(r => includeForks || !r.fork)
@@ -340,7 +365,6 @@ async function listRepos({ github, context, scope, includeArchived, includeForks
       private: r.private,
     }));
 }
-
 function getEnabledEcosystems(input) {
   const req = (input || 'all').toLowerCase().split(',').map(s => s.trim());
   const all = req.includes('all') || req.includes('');
