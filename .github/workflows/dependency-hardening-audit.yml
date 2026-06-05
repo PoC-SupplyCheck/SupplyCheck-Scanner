@@ -38,6 +38,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # ─────────────────────────────────────────────────────────────
+  # 1) DISCOVER
+  # ─────────────────────────────────────────────────────────────
   discover:
     runs-on: ubuntu-latest
     outputs:
@@ -95,9 +98,13 @@ jobs:
               includeForks: process.env.INCLUDE_FORKS === 'true',
             });
             const ecos = getEnabledEcosystems(process.env.ECOSYSTEMS);
+            core.info(`Repos: ${repos.length} | Écosystèmes: ${ecos.join(', ')}`);
             core.setOutput('repos', JSON.stringify(repos));
             core.setOutput('ecosystems', JSON.stringify(ecos));
 
+  # ─────────────────────────────────────────────────────────────
+  # 2) AUDIT
+  # ─────────────────────────────────────────────────────────────
   audit:
     needs: discover
     runs-on: ubuntu-latest
@@ -118,7 +125,7 @@ jobs:
           private-key: ${{ secrets.SUPPLY_CHAIN_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
 
-      - name: 🔬 Audit ${{ matrix.ecosystem }}
+      - name: 🔬 Auditer ${{ matrix.ecosystem }}
         uses: actions/github-script@v9
         env:
           ECO: ${{ matrix.ecosystem }}
@@ -134,6 +141,7 @@ jobs:
               github, core, ecosystemKey: process.env.ECO, repos,
             });
             fs.writeFileSync('result.json', JSON.stringify(result, null, 2));
+            core.info(`Repos avec manifests: ${result.results.length}`);
 
       - uses: actions/upload-artifact@v7
         with:
@@ -141,6 +149,9 @@ jobs:
           path: result.json
           retention-days: 7
 
+  # ─────────────────────────────────────────────────────────────
+  # 3) REPORT
+  # ─────────────────────────────────────────────────────────────
   report:
     needs: [discover, audit]
     runs-on: ubuntu-latest
@@ -191,6 +202,7 @@ jobs:
             fs.writeFileSync('reports/dependency-controls/latest.md', md);
 
             await core.summary.addRaw(md).write();
+            core.notice(`📄 Rapport: ${process.env.FILENAME}`);
 
       - uses: actions/upload-artifact@v7
         with:
@@ -202,7 +214,7 @@ jobs:
         if: ${{ inputs.commit_report != false }}
         run: |
           git config user.name  "dependency-controls[bot]"
-          git config user.email "dependency-controls[bot]@users.noreply.github.com"
+          git config user.email "${{ secrets.SUPPLY_CHAIN_APP_ID }}+dependency-controls[bot]@users.noreply.github.com"
           git add reports/dependency-controls/
           if git diff --cached --quiet; then
             echo "Aucun changement à committer."
