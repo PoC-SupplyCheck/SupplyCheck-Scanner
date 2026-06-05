@@ -533,7 +533,6 @@ async function auditEcosystem({ github, core, ecosystemKey, repos }) {
   return {
     ecosystem: ecosystemKey,
     label: eco.label,
-    hasLockfileType: eco.lockfile !== null,
     results,
   };
 }
@@ -541,12 +540,11 @@ async function auditEcosystem({ github, core, ecosystemKey, repos }) {
 function buildReport(allData, meta) {
   const repoMap = new Map();
 
-  for (const [key, data] of Object.entries(allData)) {
+  for (const [, data] of Object.entries(allData)) {
     for (const r of data.results) {
       if (!repoMap.has(r.full)) repoMap.set(r.full, { private: r.private, ecos: {} });
-      repoMap.get(r.full).ecos[key] = {
+      repoMap.get(r.full).ecos[data.ecosystem] = {
         label: data.label,
-        hasLockfileType: data.hasLockfileType,
         manifests: r.manifests,
         lockfiles: r.lockfiles,
         cooldowns: r.cooldowns,
@@ -578,9 +576,9 @@ function buildReport(allData, meta) {
     md += `### [${full}](https://github.com/${full}) ${repo.private ? '🔒' : ''}\n\n`;
 
     for (const [, eco] of Object.entries(repo.ecos)) {
-      const lock = !eco.hasLockfileType
-        ? '_(pas de lockfile dans cet écosystème)_'
-        : (eco.lockfiles.length ? '✅ ' + eco.lockfiles.map(x => '`' + x + '`').join(', ') : '⚠️ **non**');
+      const lock = eco.lockfiles.length
+        ? '✅ ' + eco.lockfiles.map(x => '`' + x + '`').join(', ')
+        : '⚠️ **non**';
 
       const cooldownText = eco.cooldowns.detected
         ? `✅ ${eco.cooldowns.sources.map(s => `\`${s.file}\` → ${s.type}.${s.key}`).join(', ')}`
