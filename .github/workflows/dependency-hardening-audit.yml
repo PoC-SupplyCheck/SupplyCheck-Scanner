@@ -1,0 +1,216 @@
+name: 🔎 Dependency Controls Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "Périmètre"
+        required: true
+        type: choice
+        options: [this-repo-only, current-org, multi-orgs]
+        default: current-org
+      orgs:
+        description: "csv des orgs (utilisé si scope=multi-orgs)"
+        required: false
+        default: ''
+      include_archived:
+        type: boolean
+        default: false
+      include_forks:
+        type: boolean
+        default: false
+      ecosystems:
+        description: "csv: npm,pypi,composer,cargo,ruby,dotnet,maven,gradle,actions,docker — ou 'all'"
+        required: false
+        default: 'all'
+      commit_report:
+        description: "Committer le rapport dans le repo"
+        type: boolean
+        default: true
+  schedule:
+    - cron: "0 8 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-controls-audit
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      repos: ${{ steps.list.outputs.repos }}
+      ecosystems: ${{ steps.list.outputs.ecosystems }}
+      date: ${{ steps.meta.outputs.date }}
+      time: ${{ steps.meta.outputs.time }}
+      filename: ${{ steps.meta.outputs.filename }}
+      reldir: ${{ steps.meta.outputs.reldir }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - id: meta
+        name: 📅 Horodatage du run
+        run: |
+          DATE=$(date -u +%Y-%m-%d)
+          TIME=$(date -u +%H%M%S)
+          RELDIR="reports/dependency-controls/${DATE}"
+          {
+            echo "date=$DATE"
+            echo "time=$TIME"
+            echo "reldir=$RELDIR"
+            echo "filename=${RELDIR}/${DATE}_${TIME}-utc.md"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: 🔑 Générer le token GitHub App
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.SUPPLY_CHAIN_APP_CLIENT_ID }}
+          private-key: ${{ secrets.SUPPLY_CHAIN_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - id: list
+        name: 🔎 Lister les repos & écosystèmes
+        uses: actions/github-script@v9
+        env:
+          SCOPE: ${{ inputs.scope || 'current-org' }}
+          ORGS: ${{ inputs.orgs || github.repository_owner }}
+          CURRENT_ORG: ${{ github.repository_owner }}
+          INCLUDE_ARCHIVED: ${{ inputs.include_archived || 'false' }}
+          INCLUDE_FORKS: ${{ inputs.include_forks || 'false' }}
+          ECOSYSTEMS: ${{ inputs.ecosystems || 'all' }}
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const { listRepos, getEnabledEcosystems } =
+              require('./.github/scripts/dependency-controls-audit.js');
+            const repos = await listRepos({
+              github, context,
+              scope: process.env.SCOPE,
+              orgs: process.env.ORGS.split(',').map(s => s.trim()).filter(Boolean),
+              currentOrg: process.env.CURRENT_ORG,
+              includeArchived: process.env.INCLUDE_ARCHIVED === 'true',
+              includeForks: process.env.INCLUDE_FORKS === 'true',
+            });
+            const ecos = getEnabledEcosystems(process.env.ECOSYSTEMS);
+            core.setOutput('repos', JSON.stringify(repos));
+            core.setOutput('ecosystems', JSON.stringify(ecos));
+
+  audit:
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        ecosystem: ${{ fromJSON(needs.discover.outputs.ecosystems) }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 🔑 Générer le token GitHub App
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.SUPPLY_CHAIN_APP_CLIENT_ID }}
+          private-key: ${{ secrets.SUPPLY_CHAIN_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: 🔬 Audit ${{ matrix.ecosystem }}
+        uses: actions/github-script@v9
+        env:
+          ECO: ${{ matrix.ecosystem }}
+          REPOS_JSON: ${{ needs.discover.outputs.repos }}
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const fs = require('fs');
+            const { auditEcosystem } =
+              require('./.github/scripts/dependency-controls-audit.js');
+            const repos = JSON.parse(process.env.REPOS_JSON);
+            const result = await auditEcosystem({
+              github, core, ecosystemKey: process.env.ECO, repos,
+            });
+            fs.writeFileSync('result.json', JSON.stringify(result, null, 2));
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: audit-${{ matrix.ecosystem }}
+          path: result.json
+          retention-days: 7
+
+  report:
+    needs: [discover, audit]
+    runs-on: ubuntu-latest
+    if: always() && needs.discover.result == 'success'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+          pattern: audit-*
+
+      - name: 📝 Générer le rapport
+        uses: actions/github-script@v9
+        env:
+          DATE: ${{ needs.discover.outputs.date }}
+          TIME: ${{ needs.discover.outputs.time }}
+          FILENAME: ${{ needs.discover.outputs.filename }}
+          RELDIR: ${{ needs.discover.outputs.reldir }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const { buildReport } =
+              require('./.github/scripts/dependency-controls-audit.js');
+
+            const all = {};
+            const dir = 'artifacts';
+            if (fs.existsSync(dir)) {
+              for (const entry of fs.readdirSync(dir)) {
+                const file = path.join(dir, entry, 'result.json');
+                if (!fs.existsSync(file)) continue;
+                const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+                all[data.ecosystem] = data;
+              }
+            }
+
+            const md = buildReport(all, {
+              date: process.env.DATE,
+              time: process.env.TIME,
+              runUrl: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            });
+
+            fs.mkdirSync(process.env.RELDIR, { recursive: true });
+            fs.writeFileSync(process.env.FILENAME, md);
+            fs.writeFileSync('reports/dependency-controls/latest.md', md);
+
+            await core.summary.addRaw(md).write();
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: report-${{ needs.discover.outputs.date }}-${{ needs.discover.outputs.time }}
+          path: reports/dependency-controls/
+          retention-days: 90
+
+      - name: 💾 Commit du rapport
+        if: ${{ inputs.commit_report != false }}
+        run: |
+          git config user.name  "dependency-controls[bot]"
+          git config user.email "dependency-controls[bot]@users.noreply.github.com"
+          git add reports/dependency-controls/
+          if git diff --cached --quiet; then
+            echo "Aucun changement à committer."
+            exit 0
+          fi
+          git commit -m "📊 Dependency controls audit ${{ needs.discover.outputs.date }} ${{ needs.discover.outputs.time }} UTC [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash && git push && exit 0
+            sleep $((i*3))
+          done
+          exit 1
