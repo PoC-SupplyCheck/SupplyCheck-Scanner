@@ -1,0 +1,139 @@
+# 🔎 Dependency Controls Audit
+
+_Run: **2026-06-06 00:57:10 UTC**_  
+_Source: [workflow run](https://github.com/PoC-SupplyCheck/SupplyCheck-Scanner/actions/runs/27047981984)_
+
+## Ce qui est audité
+
+- **Cooldowns natifs** uniquement
+- **Lockfiles**
+- **Pinning**
+
+## Détail par repo
+
+### [PoC-SupplyCheck/PoC-SemVer-Composer](https://github.com/PoC-SupplyCheck/PoC-SemVer-Composer) 🔒
+
+<details><summary><b>🐘 Composer (PHP)</b> — lockfile: ⚠️ **non** — cooldown: non</summary>
+
+- Dépendances totales : **8**
+- Pinnées : **0**
+- Flottantes : **8**
+- Sans version : **0**
+- Références externes / indirectes : **0**
+- Cooldown natif détecté : **aucun**
+
+| Fichier | Dépendance | Plage / ref | État |
+|---|---|---|---|
+| `composer.json` | `laravel/framework` | `^10.0` | floating |
+| `composer.json` | `guzzlehttp/guzzle` | `*` | floating |
+| `composer.json` | `monolog/monolog` | `latest` | floating |
+| `composer.json` | `symfony/http-foundation` | `~6.0` | floating |
+| `composer.json` | `nesbot/carbon` | `>=2.0` | floating |
+| `composer.json` | `custom/package` | `dev-main` | floating |
+| `composer.json` | `phpunit/phpunit` | `^10.0` | floating |
+| `composer.json` | `fakerphp/faker` | `*` | floating |
+
+</details>
+
+### [PoC-SupplyCheck/PoC-SemVer-NPM](https://github.com/PoC-SupplyCheck/PoC-SemVer-NPM) 
+
+<details><summary><b>📦 JavaScript/Node.js</b> — lockfile: ⚠️ **non** — cooldown: non</summary>
+
+- Dépendances totales : **9**
+- Pinnées : **0**
+- Flottantes : **7**
+- Sans version : **0**
+- Références externes / indirectes : **2**
+- Cooldown natif détecté : **aucun**
+
+| Fichier | Dépendance | Plage / ref | État |
+|---|---|---|---|
+| `package.json` | `express` | `latest` | floating |
+| `package.json` | `lodash` | `^4.17.0` | floating |
+| `package.json` | `axios` | `~1.0.0` | floating |
+| `package.json` | `debug` | `*` | floating |
+| `package.json` | `moment` | `>=2.0.0` | floating |
+| `package.json` | `custom-lib` | `github:user/custom-lib#main` | external-ref |
+| `package.json` | `another-lib` | `git+https://github.com/user/another-lib.git` | external-ref |
+| `package.json` | `jest` | `latest` | floating |
+| `package.json` | `webpack` | `^5.0.0` | floating |
+
+</details>
+
+### [PoC-SupplyCheck/PoC-SemVer-PIP](https://github.com/PoC-SupplyCheck/PoC-SemVer-PIP) 
+
+<details><summary><b>🐍 Python</b> — lockfile: ⚠️ **non** — cooldown: non</summary>
+
+- Dépendances totales : **15**
+- Pinnées : **13**
+- Flottantes : **2**
+- Sans version : **0**
+- Références externes / indirectes : **0**
+- Cooldown natif détecté : **aucun**
+
+| Fichier | Dépendance | Plage / ref | État |
+|---|---|---|---|
+| `requirements.txt` | `Flask` | `~=2.3.3` | floating |
+| `requirements.txt` | `Flask-Caching` | `==2.0.2` | pinned |
+| `requirements.txt` | `Flask-SQLAlchemy` | `==2.5.1` | pinned |
+| `requirements.txt` | `GitHub-Flask` | `==3.2.0` | pinned |
+| `requirements.txt` | `psycopg2-binary` | `==2.9.10` | pinned |
+| `requirements.txt` | `pystmark` | `==0.5.3` | pinned |
+| `requirements.txt` | `pytest` | `==7.1.2` | pinned |
+| `requirements.txt` | `raven` | `==6.10.0` | pinned |
+| `requirements.txt` | `redis` | `==4.4.4` | pinned |
+| `requirements.txt` | `requests` | `==2.28.1` | pinned |
+| `requirements.txt` | `SQLAlchemy` | `~=1.4.40` | floating |
+| `requirements.txt` | `verlib` | `==0.1` | pinned |
+| `requirements.txt` | `blinker` | `==1.6.2` | pinned |
+| `requirements.txt` | `zappa` | `==0.59.0` | pinned |
+| `requirements.txt` | `setuptools` | `==75.1.0` | pinned |
+
+</details>
+
+### [PoC-SupplyCheck/SupplyCheck-Scanner](https://github.com/PoC-SupplyCheck/SupplyCheck-Scanner) 
+
+<details><summary><b>⚡ GitHub Actions</b> — lockfile: ⚠️ **non** — cooldown: non</summary>
+
+- Dépendances totales : **22**
+- Pinnées : **0**
+- Flottantes : **22**
+- Sans version : **0**
+- Références externes / indirectes : **0**
+- Cooldown natif détecté : **aucun**
+
+| Fichier | Dépendance | Plage / ref | État |
+|---|---|---|---|
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/checkout` | `v6` | floating |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/create-github-app-token` | `v3` | floating |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/github-script` | `v9` | floating |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/checkout` | `v6` | floating |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/create-github-app-token` | `v3` | floating |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/github-script` | `v9` | floating |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/upload-artifact` | `v7` | floating |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/checkout` | `v6` | floating |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/download-artifact` | `v8` | floating |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/github-script` | `v9` | floating |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/upload-artifact` | `v7` | floating |
+| `.github/workflows/supply-chain-scan.yml` | `actions/checkout` | `v6` | floating |
+| `.github/workflows/supply-chain-scan.yml` | `actions/create-github-app-token` | `v3` | floating |
+| `.github/workflows/supply-chain-scan.yml` | `actions/github-script` | `v9` | floating |
+| `.github/workflows/supply-chain-scan.yml` | `actions/checkout` | `v6` | floating |
+| `.github/workflows/supply-chain-scan.yml` | `actions/create-github-app-token` | `v3` | floating |
+| `.github/workflows/supply-chain-scan.yml` | `actions/github-script` | `v9` | floating |
+| `.github/workflows/supply-chain-scan.yml` | `actions/upload-artifact` | `v7` | floating |
+| `.github/workflows/supply-chain-scan.yml` | `actions/checkout` | `v6` | floating |
+| `.github/workflows/supply-chain-scan.yml` | `actions/download-artifact` | `v8` | floating |
+| `.github/workflows/supply-chain-scan.yml` | `actions/github-script` | `v9` | floating |
+| `.github/workflows/supply-chain-scan.yml` | `actions/upload-artifact` | `v7` | floating |
+
+</details>
+
+---
+
+## Légende
+
+- **cooldown natif** : configuré directement dans le gestionnaire de paquets
+- **pinned** : version exacte, SHA40, digest immuable
+- **floating** : plage semver, tag mutable, branche, range ouverte
+- **unpinned** : pas de version spécifiée
