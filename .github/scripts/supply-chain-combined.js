@@ -2,29 +2,163 @@
 
 const VENDOR = /(^|\/)(node_modules|vendor|bower_components|\.venv|venv|__pypackages__|target|build|dist|\.gradle|\.tox|site-packages|\.next|out)\//;
 
+// ─────────────────────────── PACKAGE MANAGERS ───────────────────────────
+// Référentiel cooldown : https://cooldowns.dev/
+// La configurabilité est portée par le PACKAGE MANAGER, pas par l'écosystème
+// (ex: en Python, uv et pixi sont configurables; pip / poetry / pdm / pipenv ne le sont pas).
+const PACKAGE_MANAGERS = {
+  // ── JS / Node : tous configurables côté repo
+  npm: {
+    cooldown: {
+      configurable: true,
+      configHint: '`min-release-age` dans `.npmrc`',
+      detect: { file: /(^|\/)\.npmrc$/, content: /min-release-age\s*=/i },
+    },
+  },
+  yarn: {
+    cooldown: {
+      configurable: true,
+      configHint: '`npmMinimalAgeGate` dans `.yarnrc.yml`',
+      detect: { file: /(^|\/)\.yarnrc\.yml$/, content: /npmMinimalAgeGate\s*:/i },
+    },
+  },
+  pnpm: {
+    cooldown: {
+      configurable: true,
+      configHint: '`minimumReleaseAge` dans `pnpm-workspace.yaml` / `.npmrc` / `.pnpmrc`',
+      detect: { file: /(^|\/)(pnpm-workspace\.yaml|\.pnpmrc|\.npmrc)$/, content: /minimumReleaseAge\s*[:=]/i },
+    },
+  },
+  bun: {
+    cooldown: {
+      configurable: true,
+      configHint: '`minimumReleaseAge` dans `bunfig.toml`',
+      detect: { file: /(^|\/)bunfig\.toml$/, content: /minimumReleaseAge\s*=/i },
+    },
+  },
+  deno: {
+    cooldown: {
+      configurable: true,
+      configHint: '`minimumDependencyAge` dans `deno.json(c)`',
+      detect: { file: /(^|\/)deno\.jsonc?$/, content: /"minimumDependencyAge"\s*:/i },
+    },
+  },
+
+  // ── Python : seuls uv et pixi sont configurables côté repo (cf. cooldowns.dev)
+  pip: {
+    cooldown: {
+      configurable: false,
+      note: "**pip** ne supporte pas le cooldown nativement côté repo applicatif (cf. https://cooldowns.dev/). À gérer en passant à **uv**, via un **proxy/cache PyPI** (devpi, Artifactory, Nexus, JFrog Curation) ou **Dependabot cooldown** dans `.github/dependabot.yml`.",
+    },
+  },
+  uv: {
+    cooldown: {
+      configurable: true,
+      configHint: '`exclude-newer` dans `[tool.uv]` de `pyproject.toml`',
+      detect: { file: /(^|\/)pyproject\.toml$/, content: /\[tool\.uv\][\s\S]*exclude-newer\s*=/i },
+    },
+  },
+  poetry: {
+    cooldown: {
+      configurable: false,
+      note: "**Poetry** ne supporte pas le cooldown nativement côté repo applicatif (cf. https://cooldowns.dev/). À gérer via un **proxy/cache PyPI** ou **Dependabot cooldown**.",
+    },
+  },
+  pdm: {
+    cooldown: {
+      configurable: false,
+      note: "**PDM** ne supporte pas le cooldown nativement côté repo applicatif (cf. https://cooldowns.dev/). À gérer via un proxy/cache PyPI ou Dependabot cooldown.",
+    },
+  },
+  pipenv: {
+    cooldown: {
+      configurable: false,
+      note: "**Pipenv** ne supporte pas le cooldown nativement côté repo applicatif (cf. https://cooldowns.dev/). À gérer via un proxy/cache PyPI ou Dependabot cooldown.",
+    },
+  },
+  pixi: {
+    cooldown: {
+      configurable: true,
+      configHint: '`exclude-newer` dans `pixi.toml`',
+      detect: { file: /(^|\/)pixi\.toml$/, content: /exclude-newer\s*=/i },
+    },
+  },
+
+  // ── Ruby : configurable côté repo
+  bundler: {
+    cooldown: {
+      configurable: true,
+      configHint: '`cooldown` dans `Gemfile` ou `BUNDLE_COOLDOWN` dans `.bundle/config`',
+      detect: { file: /(^|\/)(Gemfile|\.bundle\/config)$/, content: /(cooldown\s*:\s*\d+|BUNDLE_COOLDOWN|cooldown\s*=)/i },
+    },
+  },
+
+  // ── Tous les autres : pas de cooldown natif côté repo applicatif
+  composer: {
+    cooldown: {
+      configurable: false,
+      note: "**Composer** ne supporte pas le cooldown nativement côté repo (cf. https://cooldowns.dev/). À gérer côté registre/proxy (Packagist mirror, Repman, Nexus, Artifactory) ou Dependabot cooldown.",
+    },
+  },
+  cargo: {
+    cooldown: {
+      configurable: false,
+      note: "**Cargo** ne supporte pas le cooldown nativement côté repo (cf. https://cooldowns.dev/). À gérer côté registre privé (crates.io mirror, Cloudsmith, Artifactory), via le plugin tiers `cargo-cooldown`, ou Dependabot cooldown.",
+    },
+  },
+  nuget: {
+    cooldown: {
+      configurable: false,
+      note: "**NuGet** ne supporte pas le cooldown nativement côté repo (cf. https://cooldowns.dev/). À gérer côté feed amont (Azure Artifacts upstream sources, Artifactory, Nexus, ProGet) ou Dependabot cooldown.",
+    },
+  },
+  maven: {
+    cooldown: {
+      configurable: false,
+      note: "**Maven** ne supporte pas le cooldown nativement côté repo (cf. https://cooldowns.dev/). À gérer dans le manager de dépôt (Nexus, Artifactory) ou Dependabot cooldown.",
+    },
+  },
+  gradle: {
+    cooldown: {
+      configurable: false,
+      note: "**Gradle** ne supporte pas le cooldown nativement côté repo (cf. https://cooldowns.dev/). Activer `dependency-locking` Gradle + quarantaine côté manager de dépôt, ou Dependabot cooldown.",
+    },
+  },
+  'github-actions': {
+    cooldown: {
+      configurable: false,
+      note: "**GitHub Actions** ne supporte pas le cooldown nativement côté repo (cf. https://cooldowns.dev/). Utiliser **Dependabot cooldown** (`updates[].cooldown` dans `.github/dependabot.yml`) + allowlist d'actions au niveau org + pinning SHA40.",
+    },
+  },
+  docker: {
+    cooldown: {
+      configurable: false,
+      note: "**Docker** ne supporte pas le cooldown nativement côté repo (cf. https://cooldowns.dev/). À gérer côté registry privé (Harbor, Artifactory, ECR pull-through cache) + politique d'admission (Cosign / Kyverno), ou Dependabot cooldown.",
+    },
+  },
+};
+
 // ─────────────────────────── ECOSYSTEMS ───────────────────────────
 const ECOSYSTEMS = {
   npm: {
     label: '📦 JavaScript / Node.js',
     manifests: [
-      /(^|\/)package\.json$/,
-      /(^|\/)\.npmrc$/,
-      /(^|\/)\.yarnrc\.yml$/,
-      /(^|\/)bunfig\.toml$/,
-      /(^|\/)deno\.jsonc?$/,
-      /(^|\/)pnpm-workspace\.yaml$/,
-      /(^|\/)\.pnpmrc$/,
+      /(^|\/)package\.json$/, /(^|\/)\.npmrc$/, /(^|\/)\.yarnrc\.yml$/,
+      /(^|\/)bunfig\.toml$/,  /(^|\/)deno\.jsonc?$/,
+      /(^|\/)pnpm-workspace\.yaml$/, /(^|\/)\.pnpmrc$/,
     ],
     primaryManifest: /(^|\/)package\.json$/,
     lockfile: /(^|\/)(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|npm-shrinkwrap\.json|bun\.lockb?|deno\.lock)$/,
-    cooldownConfigurableInRepo: true,
-    cooldownDetect: [
-      { file: /(^|\/)\.npmrc$/,                                   content: /min-release-age\s*=/i,          pm: 'npm',  key: 'min-release-age' },
-      { file: /(^|\/)\.yarnrc\.yml$/,                             content: /npmMinimalAgeGate\s*:/i,        pm: 'yarn', key: 'npmMinimalAgeGate' },
-      { file: /(^|\/)bunfig\.toml$/,                              content: /minimumReleaseAge\s*=/i,        pm: 'bun',  key: 'minimumReleaseAge' },
-      { file: /(^|\/)deno\.jsonc?$/,                              content: /"minimumDependencyAge"\s*:/i,   pm: 'deno', key: 'minimumDependencyAge' },
-      { file: /(^|\/)(pnpm-workspace\.yaml|\.pnpmrc|\.npmrc)$/,   content: /minimumReleaseAge\s*[:=]/i,     pm: 'pnpm', key: 'minimumReleaseAge' },
-    ],
+    async detectPMs({ paths }) {
+      const s = new Set();
+      if (paths.some(p => /(^|\/)yarn\.lock$/.test(p) || /(^|\/)\.yarnrc\.yml$/.test(p))) s.add('yarn');
+      if (paths.some(p => /(^|\/)pnpm-lock\.yaml$/.test(p) || /(^|\/)(pnpm-workspace\.yaml|\.pnpmrc)$/.test(p))) s.add('pnpm');
+      if (paths.some(p => /(^|\/)bun\.lockb?$/.test(p) || /(^|\/)bunfig\.toml$/.test(p))) s.add('bun');
+      if (paths.some(p => /(^|\/)deno\.lock$/.test(p) || /(^|\/)deno\.jsonc?$/.test(p))) s.add('deno');
+      if (paths.some(p => /(^|\/)(package-lock\.json|npm-shrinkwrap\.json)$/.test(p))) s.add('npm');
+      if (!s.size) s.add('npm');
+      return [...s];
+    },
     parse(c, filename) {
       if (!/package\.json$/.test(filename)) return [];
       let p; try { p = JSON.parse(c); } catch { return []; }
@@ -52,17 +186,6 @@ const ECOSYSTEMS = {
       if (/^\d+\.[xX*]/.test(v)) return 'wildcard';
       return null;
     },
-    pmFromPaths(paths) {
-      const s = new Set();
-      for (const p of paths) {
-        if (/(^|\/)package-lock\.json$/.test(p) || /(^|\/)npm-shrinkwrap\.json$/.test(p)) s.add('npm');
-        if (/(^|\/)yarn\.lock$/.test(p) || /(^|\/)\.yarnrc\.yml$/.test(p)) s.add('yarn');
-        if (/(^|\/)pnpm-lock\.yaml$/.test(p) || /(^|\/)pnpm-workspace\.yaml$/.test(p) || /(^|\/)\.pnpmrc$/.test(p)) s.add('pnpm');
-        if (/(^|\/)bun\.lockb?$/.test(p) || /(^|\/)bunfig\.toml$/.test(p)) s.add('bun');
-        if (/(^|\/)deno\.lock$/.test(p) || /(^|\/)deno\.jsonc?$/.test(p)) s.add('deno');
-      }
-      return s.size ? [...s] : ['npm (par défaut)'];
-    },
   },
 
   pypi: {
@@ -70,13 +193,31 @@ const ECOSYSTEMS = {
     manifests: [/(^|\/)(requirements[^/]*\.txt|pyproject\.toml|Pipfile|pixi\.toml)$/i, /(^|\/)pip\.conf$/i],
     primaryManifest: /(^|\/)(requirements[^/]*\.txt|pyproject\.toml|Pipfile|pixi\.toml)$/i,
     lockfile: /(^|\/)(requirements\.lock|requirements-lock\.txt|poetry\.lock|pdm\.lock|uv\.lock|Pipfile\.lock|pixi\.lock)$/i,
-    cooldownConfigurableInRepo: true,
-    cooldownDetect: [
-      { file: /pyproject\.toml$/, content: /\[tool\.uv\][\s\S]*exclude-newer\s*=/i,        pm: 'uv',     key: 'exclude-newer' },
-      { file: /pyproject\.toml$/, content: /\[solver\][\s\S]*min-release-age\s*=/i,        pm: 'poetry', key: 'solver.min-release-age' },
-      { file: /(^|\/)pip\.conf$/, content: /uploaded-prior-to\s*=/i,                       pm: 'pip',    key: 'uploaded-prior-to' },
-      { file: /pixi\.toml$/,      content: /exclude-newer\s*=/i,                           pm: 'pixi',   key: 'exclude-newer' },
-    ],
+    async detectPMs({ paths, blobs, readContent }) {
+      const s = new Set();
+      // Détection par lockfile (signal le plus fiable)
+      if (paths.some(p => /(^|\/)uv\.lock$/.test(p)))            s.add('uv');
+      if (paths.some(p => /(^|\/)poetry\.lock$/.test(p)))        s.add('poetry');
+      if (paths.some(p => /(^|\/)pdm\.lock$/.test(p)))           s.add('pdm');
+      if (paths.some(p => /(^|\/)Pipfile(\.lock)?$/.test(p)))    s.add('pipenv');
+      if (paths.some(p => /(^|\/)pixi\.(lock|toml)$/.test(p)))   s.add('pixi');
+
+      // Inspection du contenu de pyproject.toml pour identifier l'outil
+      const pyprojects = blobs.filter(b => /(^|\/)pyproject\.toml$/.test(b.path));
+      for (const pp of pyprojects) {
+        const c = await readContent(pp);
+        if (!c) continue;
+        if (/\[tool\.uv\]/i.test(c))     s.add('uv');
+        if (/\[tool\.poetry\]/i.test(c)) s.add('poetry');
+        if (/\[tool\.pdm\]/i.test(c))    s.add('pdm');
+      }
+
+      // Fallback pip si rien d'autre n'est détecté
+      if (!s.size && (paths.some(p => /requirements[^/]*\.txt$/.test(p)) || pyprojects.length)) {
+        s.add('pip');
+      }
+      return [...s];
+    },
     parse(c, filename) {
       const o = [];
       if (/requirements[^/]*\.txt$/i.test(filename)) {
@@ -138,19 +279,6 @@ const ECOSYSTEMS = {
       if (/(>=|>)/.test(v) && !/(<=|<)/.test(v)) return 'borne supérieure ouverte';
       return null;
     },
-    pmFromPaths(paths) {
-      const s = new Set();
-      for (const p of paths) {
-        if (/(^|\/)poetry\.lock$/.test(p)) s.add('poetry');
-        if (/(^|\/)pdm\.lock$/.test(p)) s.add('pdm');
-        if (/(^|\/)uv\.lock$/.test(p)) s.add('uv');
-        if (/(^|\/)Pipfile(\.lock)?$/.test(p)) s.add('pipenv');
-        if (/(^|\/)pixi\.(lock|toml)$/.test(p)) s.add('pixi');
-        if (/requirements[^/]*\.txt$/.test(p)) s.add('pip');
-        if (/pyproject\.toml$/.test(p) && !/(^|\/)poetry\.lock$/.test(paths.join('\n'))) s.add('pyproject (pip/uv)');
-      }
-      return s.size ? [...s] : ['pip (par défaut)'];
-    },
   },
 
   composer: {
@@ -158,8 +286,7 @@ const ECOSYSTEMS = {
     manifests: [/(^|\/)composer\.json$/],
     primaryManifest: /(^|\/)composer\.json$/,
     lockfile: /(^|\/)composer\.lock$/,
-    cooldownConfigurableInRepo: false,
-    cooldownNote: 'Composer ne supporte pas de **cooldown natif au niveau du repo applicatif**. Mettre en place une période de quarantaine côté **registre/proxy** (Packagist mirror, Repman, Nexus, Artifactory).',
+    async detectPMs() { return ['composer']; },
     parse(c) { let p; try { p = JSON.parse(c); } catch { return []; }
       const o = [];
       for (const s of ['require','require-dev']) for (const [n, r] of Object.entries(p[s] || {})) {
@@ -182,7 +309,6 @@ const ECOSYSTEMS = {
       if (/\s\|\|\s/.test(v)) return 'union OR (||)';
       return null;
     },
-    pmFromPaths() { return ['composer']; },
   },
 
   cargo: {
@@ -190,11 +316,7 @@ const ECOSYSTEMS = {
     manifests: [/(^|\/)Cargo\.toml$/, /(^|\/)\.cargo\/config\.toml$/],
     primaryManifest: /(^|\/)Cargo\.toml$/,
     lockfile: /(^|\/)Cargo\.lock$/,
-    cooldownConfigurableInRepo: false,
-    cooldownNote: 'Cargo n\'a pas de cooldown natif officiel côté repo. La fenêtre de quarantaine se gère via un **registre privé** (crates.io mirror, Cloudsmith, Artifactory) ou un plugin tiers (`cargo-cooldown`).',
-    cooldownDetect: [
-      { file: /(^|\/)Cargo\.toml$|(^|\/)\.cargo\/config\.toml$/, content: /cargo-cooldown|COOLDOWN_MINUTES/i, pm: 'cargo-cooldown (plugin)', key: 'cooldown' },
-    ],
+    async detectPMs() { return ['cargo']; },
     parse(c, filename) {
       if (!/Cargo\.toml$/.test(filename)) return [];
       const o = []; const re = /\[(dependencies|dev-dependencies|build-dependencies|target\.[^.\]]+\.dependencies)\]([\s\S]*?)(?=\n\[|$)/g;
@@ -222,7 +344,6 @@ const ECOSYSTEMS = {
       if (/^\d/.test(v)) return 'caret implicite (défaut Cargo)';
       return null;
     },
-    pmFromPaths() { return ['cargo']; },
   },
 
   ruby: {
@@ -230,11 +351,7 @@ const ECOSYSTEMS = {
     manifests: [/(^|\/)Gemfile$/, /(^|\/)\.bundle\/config$/],
     primaryManifest: /(^|\/)Gemfile$/,
     lockfile: /(^|\/)Gemfile\.lock$/,
-    cooldownConfigurableInRepo: true,
-    cooldownDetect: [
-      { file: /(^|\/)Gemfile$/,          content: /cooldown\s*:\s*\d+/i,        pm: 'bundler', key: 'cooldown' },
-      { file: /(^|\/)\.bundle\/config$/, content: /BUNDLE_COOLDOWN|cooldown/i,   pm: 'bundler', key: 'cooldown' },
-    ],
+    async detectPMs() { return ['bundler']; },
     parse(c, filename) {
       if (!/Gemfile$/.test(filename)) return [];
       const o = []; const re = /^\s*gem\s+['"]([^'"]+)['"](.*)$/gm; let m;
@@ -257,7 +374,6 @@ const ECOSYSTEMS = {
       if (/^(>=|>)/.test(v) && !/(<=|<)/.test(v)) return 'borne supérieure ouverte';
       return null;
     },
-    pmFromPaths() { return ['bundler']; },
   },
 
   dotnet: {
@@ -265,8 +381,7 @@ const ECOSYSTEMS = {
     manifests: [/\.(csproj|fsproj|vbproj)$/i],
     primaryManifest: /\.(csproj|fsproj|vbproj)$/i,
     lockfile: /(^|\/)packages\.lock\.json$/i,
-    cooldownConfigurableInRepo: false,
-    cooldownNote: 'NuGet n\'expose pas de cooldown configurable depuis le repo applicatif. La quarantaine se gère côté **feed amont** (Azure Artifacts upstream sources, Artifactory, Nexus, ProGet).',
+    async detectPMs() { return ['nuget']; },
     parse(c) {
       const o = []; let m;
       const re1 = /<PackageReference\b[^>]*\bInclude\s*=\s*"([^"]+)"[^>]*\bVersion\s*=\s*"([^"]+)"/gi;
@@ -290,7 +405,6 @@ const ECOSYSTEMS = {
       if (/^\(/.test(v)) return 'range sans pin bas';
       return null;
     },
-    pmFromPaths() { return ['nuget']; },
   },
 
   maven: {
@@ -298,8 +412,7 @@ const ECOSYSTEMS = {
     manifests: [/(^|\/)pom\.xml$/],
     primaryManifest: /(^|\/)pom\.xml$/,
     lockfile: null,
-    cooldownConfigurableInRepo: false,
-    cooldownNote: 'Maven n\'a pas de cooldown natif côté repo applicatif. Configurer la quarantaine dans le **manager de dépôt** (Nexus Repository, Artifactory, Sonatype Lifecycle).',
+    async detectPMs() { return ['maven']; },
     parse(c, filename) {
       if (!/pom\.xml$/.test(filename)) return [];
       const o = []; const re = /<dependency>([\s\S]*?)<\/dependency>/gi; let m;
@@ -325,7 +438,6 @@ const ECOSYSTEMS = {
       if (/^\[.*,\s*\)/.test(v)) return 'borne supérieure ouverte';
       return null;
     },
-    pmFromPaths() { return ['maven']; },
   },
 
   gradle: {
@@ -333,8 +445,7 @@ const ECOSYSTEMS = {
     manifests: [/(^|\/)build\.gradle(\.kts)?$/],
     primaryManifest: /(^|\/)build\.gradle(\.kts)?$/,
     lockfile: /(^|\/)gradle\.lockfile$/,
-    cooldownConfigurableInRepo: false,
-    cooldownNote: 'Gradle n\'expose pas de cooldown natif. Activer le **dependency-locking Gradle** + une quarantaine côté **manager de dépôt** (Artifactory, Nexus).',
+    async detectPMs() { return ['gradle']; },
     parse(c, filename) {
       if (!/build\.gradle(\.kts)?$/.test(filename)) return [];
       const o = []; const re = /\b(implementation|api|compile|runtimeOnly|testImplementation|testCompile|annotationProcessor|kapt|classpath)\s*[\(\s]\s*['"]([^'"]+)['"]/g;
@@ -358,7 +469,6 @@ const ECOSYSTEMS = {
       if (/^\[.*,\s*\)/.test(v)) return 'borne supérieure ouverte';
       return null;
     },
-    pmFromPaths() { return ['gradle']; },
   },
 
   actions: {
@@ -366,8 +476,7 @@ const ECOSYSTEMS = {
     manifests: [/^\.github\/workflows\/.+\.ya?ml$/],
     primaryManifest: /^\.github\/workflows\/.+\.ya?ml$/,
     lockfile: null,
-    cooldownConfigurableInRepo: false,
-    cooldownNote: 'GitHub Actions n\'a **pas** de cooldown natif côté repo applicatif. Utiliser une **allowlist d\'actions** au niveau org + **Dependabot cooldown** (`updates[].cooldown` dans `.github/dependabot.yml`) et **pinner sur SHA40**.',
+    async detectPMs() { return ['github-actions']; },
     parse(c, filename) {
       if (!/^\.github\/workflows\/.+\.ya?ml$/.test(filename)) return [];
       const o = []; const re = /^\s*-?\s*uses:\s*['"]?([^@'"\s]+)@([^'"\s#]+)/gm; let m;
@@ -388,7 +497,6 @@ const ECOSYSTEMS = {
       if (/^v?\d+\.\d+(\.\d+)?$/.test(v)) return 'tag mineur/patch (mutable)';
       return 'ref mutable';
     },
-    pmFromPaths() { return ['github-actions']; },
   },
 
   docker: {
@@ -396,8 +504,7 @@ const ECOSYSTEMS = {
     manifests: [/(^|\/)Dockerfile([._-].*)?$/],
     primaryManifest: /(^|\/)Dockerfile([._-].*)?$/,
     lockfile: null,
-    cooldownConfigurableInRepo: false,
-    cooldownNote: 'Docker n\'a pas de cooldown côté repo applicatif. Mettre la quarantaine côté **registry privé** (Harbor, Artifactory, ECR pull-through cache) + politique d\'admission (Cosign / Kyverno).',
+    async detectPMs() { return ['docker']; },
     parse(c, filename) {
       if (!/Dockerfile([._-].*)?$/.test(filename)) return [];
       const o = []; const re = /^\s*FROM\s+(?:--platform=\S+\s+)?(\S+)(?:\s+AS\s+\S+)?/gim; let m;
@@ -423,7 +530,6 @@ const ECOSYSTEMS = {
       if (/^\d+\.\d+/.test(v)) return 'tag versionné (mutable)';
       return 'tag (mutable)';
     },
-    pmFromPaths() { return ['docker']; },
   },
 };
 
@@ -439,20 +545,35 @@ async function readFile(github, owner, repo, p, sha) {
   } catch { return null; }
 }
 
-async function detectCooldownsForEco(github, repo, blobs, eco) {
-  if (!eco.cooldownDetect || !eco.cooldownDetect.length) return { detected: false, sources: [] };
-  const interesting = blobs.filter(b => eco.cooldownDetect.some(d => d.file.test(b.path)));
-  const sources = [];
-  for (const f of interesting) {
-    const content = await readFile(github, repo.owner, repo.name, f.path, f.sha);
-    if (content == null) continue;
-    for (const d of eco.cooldownDetect) {
-      if (d.file.test(f.path) && d.content.test(content)) {
-        sources.push({ file: f.path, pm: d.pm, key: d.key });
+async function detectCooldownsForRepo({ github, repo, blobs, packageManagers }) {
+  const out = {};
+  for (const pmKey of packageManagers) {
+    const pm = PACKAGE_MANAGERS[pmKey];
+    if (!pm) { out[pmKey] = { configurable: false, note: 'PM non répertorié.', configured: false, sources: [] }; continue; }
+
+    if (!pm.cooldown.configurable) {
+      out[pmKey] = { configurable: false, note: pm.cooldown.note, configured: false, sources: [] };
+      continue;
+    }
+
+    const sources = [];
+    const detect = pm.cooldown.detect;
+    if (detect) {
+      const candidates = blobs.filter(b => detect.file.test(b.path));
+      for (const f of candidates) {
+        const content = await readFile(github, repo.owner, repo.name, f.path, f.sha);
+        if (content && detect.content.test(content)) sources.push({ file: f.path });
       }
     }
+
+    out[pmKey] = {
+      configurable: true,
+      configHint: pm.cooldown.configHint,
+      configured: sources.length > 0,
+      sources,
+    };
   }
-  return { detected: sources.length > 0, sources };
+  return out;
 }
 
 // ─────────────────────────── EXPORTED API ───────────────────────────
@@ -506,15 +627,16 @@ async function auditEcosystem({ github, core, ecosystemKey, repos }) {
       if (!primaryManifests.length) continue;
 
       const lockfiles = eco.lockfile ? blobs.filter(b => eco.lockfile.test(b.path)).map(b => b.path) : [];
-      const allDetectedPaths = manifests.map(m => m.path).concat(lockfiles);
-      const packageManagers = eco.pmFromPaths(allDetectedPaths);
+      const allPaths = manifests.map(m => m.path).concat(lockfiles);
 
-      const cooldowns = await detectCooldownsForEco(github, repo, blobs, eco);
+      const readContent = (b) => readFile(github, repo.owner, repo.name, b.path, b.sha);
+      const packageManagers = await eco.detectPMs({ paths: allPaths, blobs, readContent });
+      const cooldownsPerPM = await detectCooldownsForRepo({ github, repo, blobs, packageManagers });
 
       let pinned = 0, floating = 0, unpinned = 0, externalRefs = 0;
       const findings = [];
       for (const f of primaryManifests) {
-        const content = await readFile(github, repo.owner, repo.name, f.path, f.sha);
+        const content = await readContent(f);
         if (!content) continue;
         let deps = [];
         try { deps = eco.parse(content, f.path); } catch {}
@@ -535,7 +657,7 @@ async function auditEcosystem({ github, core, ecosystemKey, repos }) {
         packageManagers,
         manifests: primaryManifests.map(m => m.path),
         lockfiles,
-        cooldowns,
+        cooldownsPerPM,
         counts: { total: pinned + floating + unpinned + externalRefs, pinned, floating, unpinned, externalRefs },
         findings,
       });
@@ -547,11 +669,25 @@ async function auditEcosystem({ github, core, ecosystemKey, repos }) {
   return {
     ecosystem: ecosystemKey,
     label: eco.label,
-    cooldownConfigurableInRepo: !!eco.cooldownConfigurableInRepo,
-    cooldownNote: eco.cooldownNote || '',
     hasLockfileType: eco.lockfile !== null,
     results,
   };
+}
+
+function renderCooldownPerPM(cooldownsPerPM) {
+  const lines = [];
+  for (const [pmKey, c] of Object.entries(cooldownsPerPM)) {
+    if (c.configurable) {
+      if (c.configured) {
+        lines.push(`  - **${pmKey}** → ✅ cooldown configuré dans ${c.sources.map(s => '`' + s.file + '`').join(', ')} (clé : ${c.configHint})`);
+      } else {
+        lines.push(`  - **${pmKey}** → ⚠️ cooldown natif **supporté** mais **non configuré** dans ce repo. À activer via ${c.configHint}.`);
+      }
+    } else {
+      lines.push(`  - **${pmKey}** → 🚫 ${c.note}`);
+    }
+  }
+  return lines.join('\n');
 }
 
 function buildReport(allData, meta) {
@@ -565,13 +701,11 @@ function buildReport(allData, meta) {
       if (!repoMap.has(r.full)) repoMap.set(r.full, { private: r.private, ecos: {} });
       repoMap.get(r.full).ecos[key] = {
         label: data.label,
-        cooldownConfigurableInRepo: data.cooldownConfigurableInRepo,
-        cooldownNote: data.cooldownNote,
         hasLockfileType: data.hasLockfileType,
         packageManagers: r.packageManagers,
         manifests: r.manifests,
         lockfiles: r.lockfiles,
-        cooldowns: r.cooldowns,
+        cooldownsPerPM: r.cooldownsPerPM,
         counts: r.counts,
         findings: r.findings,
       };
@@ -585,13 +719,14 @@ function buildReport(allData, meta) {
 
   let md = `# 🛡️🔎 Supply-chain combined audit\n\n`;
   md += `_Run: **${meta.date} ${meta.time.slice(0,2)}:${meta.time.slice(2,4)}:${meta.time.slice(4,6)} UTC**_  \n`;
-  md += `_Source: [workflow run](${meta.runUrl})_\n\n`;
+  md += `_Source: [workflow run](${meta.runUrl})_  \n`;
+  md += `_Référentiel cooldown : https://cooldowns.dev/_\n\n`;
 
   md += `## Ce qui est audité par repo\n\n`;
-  md += `1. **Package manager(s) utilisé(s)**\n`;
+  md += `1. **Package manager(s) utilisé(s)** (détecté via lockfiles, manifests, sections \`[tool.X]\` de \`pyproject.toml\`)\n`;
   md += `2. **Dépendances pinnées vs flottantes**\n`;
   md += `3. **Présence d'un lockfile / mécanisme de lock**\n`;
-  md += `4. **Cooldown natif** du package manager (avec mention explicite si la configuration ne se fait **pas** côté repo applicatif)\n\n`;
+  md += `4. **Cooldown natif** du package manager — explicitement marqué 🚫 quand la configuration **ne peut pas se faire côté repo applicatif**\n\n`;
 
   md += `## Synthèse\n\n`;
   md += `- Repos analysés : **${repoMap.size}**\n`;
@@ -602,10 +737,7 @@ function buildReport(allData, meta) {
   for (const [, s] of ecoStats) md += `| ${s.label} | ${s.repos} | ${s.pinned} | ${s.floating} |\n`;
   md += `\n`;
 
-  if (!repoMap.size) {
-    md += `_Aucun manifeste détecté._\n`;
-    return md;
-  }
+  if (!repoMap.size) { md += `_Aucun manifeste détecté._\n`; return md; }
 
   md += `## Détail par repo\n\n`;
   const sorted = [...repoMap.entries()].sort((a, b) => a[0].localeCompare(b[0]));
@@ -616,23 +748,13 @@ function buildReport(allData, meta) {
       const lock = !eco.hasLockfileType
         ? '_(pas de lockfile dans cet écosystème)_'
         : (eco.lockfiles.length ? '✅ ' + eco.lockfiles.map(x => '`' + x + '`').join(', ') : '⚠️ **non**');
-
-      let cooldownText;
-      if (eco.cooldownConfigurableInRepo) {
-        cooldownText = eco.cooldowns.detected
-          ? '✅ ' + eco.cooldowns.sources.map(s => `\`${s.file}\` → **${s.pm}**.${s.key}`).join(', ')
-          : '❌ **non configuré** côté repo (configurable mais absent)';
-      } else {
-        cooldownText = `🚫 **non configurable au niveau du repo applicatif** — ${eco.cooldownNote}`;
-      }
-
       const pm = (eco.packageManagers || []).map(x => '`' + x + '`').join(', ') || '_indéterminé_';
 
       md += `<details open><summary><b>${eco.label}</b> — PM: ${pm} — lockfile: ${lock}</summary>\n\n`;
-      md += `- **Package manager(s)** : ${pm}\n`;
+      md += `- **Package manager(s) détecté(s)** : ${pm}\n`;
       md += `- **Manifests** : ${eco.manifests.map(x => '`' + x + '`').join(', ')}\n`;
       md += `- **Lockfile / mécanisme de lock** : ${lock}\n`;
-      md += `- **Cooldown natif** : ${cooldownText}\n`;
+      md += `- **Cooldown natif** (par PM) :\n${renderCooldownPerPM(eco.cooldownsPerPM)}\n`;
       md += `- **Pinning** : total **${eco.counts.total}** — pinned **${eco.counts.pinned}** — floating **${eco.counts.floating}** — unpinned **${eco.counts.unpinned}** — refs externes **${eco.counts.externalRefs}**\n\n`;
 
       md += `| Fichier | Dépendance | Plage / ref | État | Type |\n|---|---|---|---|---|\n`;
@@ -645,14 +767,22 @@ function buildReport(allData, meta) {
   }
 
   md += `---\n\n## Légende\n\n`;
+  md += `### Pinning\n`;
   md += `- **pinned** : version exacte / SHA40 / digest immuable\n`;
   md += `- **floating** : plage semver, tag mutable, branche, range ouverte\n`;
   md += `- **unpinned** : aucune version spécifiée\n`;
-  md += `- **external-ref** : git+, file:, link:, workspace:, etc.\n`;
-  md += `- **cooldown configurable côté repo** : npm, yarn, pnpm, bun, deno, pip, uv, poetry, pixi, bundler\n`;
-  md += `- **cooldown non configurable côté repo** : composer, cargo (sauf plugin), nuget, maven, gradle, GitHub Actions, Docker → à gérer côté **registre / proxy / Dependabot**\n`;
+  md += `- **external-ref** : git+, file:, link:, workspace:, etc.\n\n`;
+  md += `### Cooldown — réf. https://cooldowns.dev/\n\n`;
+  md += `**Configurable côté repo applicatif** :\n`;
+  md += `- npm (\`min-release-age\`), yarn (\`npmMinimalAgeGate\`), pnpm (\`minimumReleaseAge\`), bun (\`minimumReleaseAge\`), deno (\`minimumDependencyAge\`)\n`;
+  md += `- uv (\`exclude-newer\`), pixi (\`exclude-newer\`)\n`;
+  md += `- bundler (\`cooldown\` / \`BUNDLE_COOLDOWN\`)\n\n`;
+  md += `**Non** configurable côté repo applicatif → à gérer via proxy / registre / Dependabot cooldown :\n`;
+  md += `- **pip**, poetry, pdm, pipenv\n`;
+  md += `- composer, cargo, nuget, maven, gradle\n`;
+  md += `- github-actions, docker\n`;
 
   return md;
 }
 
-module.exports = { ECOSYSTEMS, listRepos, getEnabledEcosystems, auditEcosystem, buildReport };
+module.exports = { ECOSYSTEMS, PACKAGE_MANAGERS, listRepos, getEnabledEcosystems, auditEcosystem, buildReport };
