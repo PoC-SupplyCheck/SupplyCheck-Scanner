@@ -785,4 +785,110 @@ function buildReport(allData, meta) {
   return md;
 }
 
-module.exports = { ECOSYSTEMS, PACKAGE_MANAGERS, listRepos, getEnabledEcosystems, auditEcosystem, buildReport };
+
+// ─────────────────────────── CSV EXPORT ───────────────────────────
+function csvEscape(v) {
+  if (v == null) return '';
+  const s = String(v);
+  // RFC 4180 : on quote si , " CR LF, et on double les guillemets
+  if (/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function csvRow(cols) { return cols.map(csvEscape).join(','); }
+
+/**
+ * CSV "dépendances" — 1 ligne par dépendance trouvée dans un manifest
+ * Colonnes :
+ *   repo, private, ecosystem, package_managers, manifest, section,
+ *   package, range, pin_state, risk_type
+ */
+function buildDependenciesCsv(allData) {
+  const header = [
+    'repo','private','ecosystem','package_managers',
+    'manifest','section','package','range','pin_state','risk_type',
+  ];
+  const lines = [csvRow(header)];
+
+  for (const [ecoKey, data] of Object.entries(allData)) {
+    for (const r of data.results) {
+      const pms = (r.packageManagers || []).join(';');
+      for (const f of r.findings) {
+        lines.push(csvRow([
+          r.full,
+          r.private ? 'true' : 'false',
+          ecoKey,
+          pms,
+          f.path,
+          f.section,
+          f.name,
+          f.range,
+          f.pinState,
+          f.risk || '',
+        ]));
+      }
+    }
+  }
+  return lines.join('\n') + '\n';
+}
+
+/**
+ * CSV "package managers" — 1 ligne par (repo × package_manager)
+ * Colonnes :
+ *   repo, private, ecosystem, package_manager,
+ *   cooldown_configurable_in_repo, cooldown_configured,
+ *   cooldown_sources, cooldown_config_hint, cooldown_note,
+ *   lockfile_supported, lockfile_present, lockfiles,
+ *   deps_total, deps_pinned, deps_floating, deps_unpinned, deps_external_refs
+ */
+function buildPackageManagersCsv(allData) {
+  const header = [
+    'repo','private','ecosystem','package_manager',
+    'cooldown_configurable_in_repo','cooldown_configured',
+    'cooldown_sources','cooldown_config_hint','cooldown_note',
+    'lockfile_supported','lockfile_present','lockfiles',
+    'deps_total','deps_pinned','deps_floating','deps_unpinned','deps_external_refs',
+  ];
+  const lines = [csvRow(header)];
+
+  for (const [ecoKey, data] of Object.entries(allData)) {
+    for (const r of data.results) {
+      for (const pmKey of (r.packageManagers || [])) {
+        const c = (r.cooldownsPerPM || {})[pmKey] || {};
+        lines.push(csvRow([
+          r.full,
+          r.private ? 'true' : 'false',
+          ecoKey,
+          pmKey,
+          c.configurable ? 'true' : 'false',
+          c.configured ? 'true' : 'false',
+          (c.sources || []).map(s => s.file).join(';'),
+          c.configHint || '',
+          c.note || '',
+          data.hasLockfileType ? 'true' : 'false',
+          (r.lockfiles && r.lockfiles.length) ? 'true' : 'false',
+          (r.lockfiles || []).join(';'),
+          r.counts.total,
+          r.counts.pinned,
+          r.counts.floating,
+          r.counts.unpinned,
+          r.counts.externalRefs,
+        ]));
+      }
+    }
+  }
+  return lines.join('\n') + '\n';
+}
+
+// ─────────────────────────── EXPORTS ───────────────────────────
+// ⚠️ Remplacer la ligne `module.exports = { ... }` existante par celle-ci :
+module.exports = {
+  ECOSYSTEMS,
+  PACKAGE_MANAGERS,
+  listRepos,
+  getEnabledEcosystems,
+  auditEcosystem,
+  buildReport,
+  buildDependenciesCsv,
+  buildPackageManagersCsv,
+};
