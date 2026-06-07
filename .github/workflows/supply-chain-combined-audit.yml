@@ -149,8 +149,8 @@ jobs:
           path: result.json
           retention-days: 7
 
-  # ─────────────────────────────────────────────────────────────
-  # 3) REPORT : agrégation Markdown
+   # ─────────────────────────────────────────────────────────────
+  # 3) REPORT : Markdown + 2 CSV
   # ─────────────────────────────────────────────────────────────
   report:
     needs: [discover, audit]
@@ -166,7 +166,7 @@ jobs:
           path: artifacts
           pattern: combined-*
 
-      - name: 📝 Générer le rapport
+      - name: 📝 Générer le rapport (MD + CSV)
         uses: actions/github-script@v9
         env:
           DATE: ${{ needs.discover.outputs.date }}
@@ -177,9 +177,13 @@ jobs:
           script: |
             const fs = require('fs');
             const path = require('path');
-            const { buildReport } =
-              require('./.github/scripts/supply-chain-combined.js');
+            const {
+              buildReport,
+              buildDependenciesCsv,
+              buildPackageManagersCsv,
+            } = require('./.github/scripts/supply-chain-combined.js');
 
+            // Agrégation des artifacts par écosystème
             const all = {};
             const dir = 'artifacts';
             if (fs.existsSync(dir)) {
@@ -191,18 +195,42 @@ jobs:
               }
             }
 
-            const md = buildReport(all, {
-              date: process.env.DATE,
-              time: process.env.TIME,
+            const date     = process.env.DATE;
+            const time     = process.env.TIME;
+            const reldir   = process.env.RELDIR;
+            const baseName = `${date}_${time}-utc`;
+            const mdFile   = process.env.FILENAME;                         // .../<date>/<base>.md
+            const depsCsv  = path.join(reldir, `${baseName}-dependencies.csv`);
+            const pmsCsv   = path.join(reldir, `${baseName}-package-managers.csv`);
+
+            const baseRoot = 'reports/supply-chain-combined';
+            const latestMd      = path.join(baseRoot, 'latest.md');
+            const latestDepsCsv = path.join(baseRoot, 'latest-dependencies.csv');
+            const latestPmsCsv  = path.join(baseRoot, 'latest-package-managers.csv');
+
+            const md   = buildReport(all, {
+              date, time,
               runUrl: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
             });
+            const csv1 = buildDependenciesCsv(all);
+            const csv2 = buildPackageManagersCsv(all);
 
-            fs.mkdirSync(process.env.RELDIR, { recursive: true });
-            fs.writeFileSync(process.env.FILENAME, md);
-            fs.writeFileSync('reports/supply-chain-combined/latest.md', md);
+            fs.mkdirSync(reldir, { recursive: true });
+
+            // Versions horodatées
+            fs.writeFileSync(mdFile,  md);
+            fs.writeFileSync(depsCsv, csv1);
+            fs.writeFileSync(pmsCsv,  csv2);
+
+            // Versions "latest" à la racine du dossier
+            fs.writeFileSync(latestMd,      md);
+            fs.writeFileSync(latestDepsCsv, csv1);
+            fs.writeFileSync(latestPmsCsv,  csv2);
 
             await core.summary.addRaw(md).write();
-            core.notice(`📄 Rapport: ${process.env.FILENAME}`);
+            core.notice(`📄 Markdown : ${mdFile}`);
+            core.notice(`📊 CSV deps : ${depsCsv}`);
+            core.notice(`📊 CSV PMs  : ${pmsCsv}`);
 
       - uses: actions/upload-artifact@v7
         with:
