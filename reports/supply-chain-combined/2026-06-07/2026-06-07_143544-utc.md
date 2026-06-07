@@ -1,0 +1,165 @@
+# 🛡️🔎 Supply-chain combined audit
+
+_Run: **2026-06-07 14:35:44 UTC**_  
+_Source: [workflow run](https://github.com/PoC-SupplyCheck/SupplyCheck-Scanner/actions/runs/27095499687)_
+
+## Ce qui est audité par repo
+
+1. **Package manager(s) utilisé(s)**
+2. **Dépendances pinnées vs flottantes**
+3. **Présence d'un lockfile / mécanisme de lock**
+4. **Cooldown natif** du package manager (avec mention explicite si la configuration ne se fait **pas** côté repo applicatif)
+
+## Synthèse
+
+- Repos analysés : **4**
+- Dépendances pinnées : **15**
+- Dépendances flottantes / non versionnées : **45**
+
+### Par écosystème
+
+| Écosystème | Repos | Pinned | Floating/Unpinned |
+|---|---:|---:|---:|
+| ⚡ GitHub Actions | 1 | 0 | 33 |
+| 🦀 Cargo (Rust) | 0 | 0 | 0 |
+| 🐘 Composer (PHP) | 1 | 0 | 8 |
+| 🐳 Docker | 0 | 0 | 0 |
+| 🔷 NuGet (.NET) | 0 | 0 | 0 |
+| 🐘 Gradle | 0 | 0 | 0 |
+| ☕ Maven | 0 | 0 | 0 |
+| 📦 JavaScript / Node.js | 1 | 2 | 2 |
+| 🐍 Python | 1 | 13 | 2 |
+| 💎 Ruby | 0 | 0 | 0 |
+
+## Détail par repo
+
+### [PoC-SupplyCheck/PoC-SemVer-Composer](https://github.com/PoC-SupplyCheck/PoC-SemVer-Composer) 
+
+<details open><summary><b>🐘 Composer (PHP)</b> — PM: `composer` — lockfile: ⚠️ **non**</summary>
+
+- **Package manager(s)** : `composer`
+- **Manifests** : `composer.json`
+- **Lockfile / mécanisme de lock** : ⚠️ **non**
+- **Cooldown natif** : 🚫 **non configurable au niveau du repo applicatif** — Composer ne supporte pas de **cooldown natif au niveau du repo applicatif**. Mettre en place une période de quarantaine côté **registre/proxy** (Packagist mirror, Repman, Nexus, Artifactory).
+- **Pinning** : total **8** — pinned **0** — floating **8** — unpinned **0** — refs externes **0**
+
+| Fichier | Dépendance | Plage / ref | État | Type |
+|---|---|---|---|---|
+| `composer.json` | `laravel/framework` | `^10.0` | floating | caret (^) |
+| `composer.json` | `guzzlehttp/guzzle` | `*` | floating | wildcard |
+| `composer.json` | `monolog/monolog` | `latest` | floating | — |
+| `composer.json` | `symfony/http-foundation` | `~6.0` | floating | tilde (~) |
+| `composer.json` | `nesbot/carbon` | `>=2.0` | floating | borne supérieure ouverte |
+| `composer.json` | `custom/package` | `dev-main` | floating | dev branch |
+| `composer.json` | `phpunit/phpunit` | `^10.0` | floating | caret (^) |
+| `composer.json` | `fakerphp/faker` | `*` | floating | wildcard |
+
+</details>
+
+### [PoC-SupplyCheck/PoC-SemVer-NPM](https://github.com/PoC-SupplyCheck/PoC-SemVer-NPM) 
+
+<details open><summary><b>📦 JavaScript / Node.js</b> — PM: `npm` — lockfile: ✅ `package-lock.json`</summary>
+
+- **Package manager(s)** : `npm`
+- **Manifests** : `package.json`
+- **Lockfile / mécanisme de lock** : ✅ `package-lock.json`
+- **Cooldown natif** : ✅ `.npmrc` → **npm**.min-release-age
+- **Pinning** : total **4** — pinned **2** — floating **2** — unpinned **0** — refs externes **0**
+
+| Fichier | Dépendance | Plage / ref | État | Type |
+|---|---|---|---|---|
+| `package.json` | `axios` | `latest` | floating | wildcard |
+| `package.json` | `lodash` | `^4.17.21` | floating | caret (^) |
+| `package.json` | `express` | `4.18.2` | pinned | — |
+| `package.json` | `uuid` | `9.0.1` | pinned | — |
+
+</details>
+
+### [PoC-SupplyCheck/PoC-SemVer-PIP](https://github.com/PoC-SupplyCheck/PoC-SemVer-PIP) 
+
+<details open><summary><b>🐍 Python</b> — PM: `pip` — lockfile: ⚠️ **non**</summary>
+
+- **Package manager(s)** : `pip`
+- **Manifests** : `requirements.txt`
+- **Lockfile / mécanisme de lock** : ⚠️ **non**
+- **Cooldown natif** : ❌ **non configuré** côté repo (configurable mais absent)
+- **Pinning** : total **15** — pinned **13** — floating **2** — unpinned **0** — refs externes **0**
+
+| Fichier | Dépendance | Plage / ref | État | Type |
+|---|---|---|---|---|
+| `requirements.txt` | `Flask` | `~=2.3.3` | floating | compatible release (~=) |
+| `requirements.txt` | `Flask-Caching` | `==2.0.2` | pinned | — |
+| `requirements.txt` | `Flask-SQLAlchemy` | `==2.5.1` | pinned | — |
+| `requirements.txt` | `GitHub-Flask` | `==3.2.0` | pinned | — |
+| `requirements.txt` | `psycopg2-binary` | `==2.9.10` | pinned | — |
+| `requirements.txt` | `pystmark` | `==0.5.3` | pinned | — |
+| `requirements.txt` | `pytest` | `==7.1.2` | pinned | — |
+| `requirements.txt` | `raven` | `==6.10.0` | pinned | — |
+| `requirements.txt` | `redis` | `==4.4.4` | pinned | — |
+| `requirements.txt` | `requests` | `==2.28.1` | pinned | — |
+| `requirements.txt` | `SQLAlchemy` | `~=1.4.40` | floating | compatible release (~=) |
+| `requirements.txt` | `verlib` | `==0.1` | pinned | — |
+| `requirements.txt` | `blinker` | `==1.6.2` | pinned | — |
+| `requirements.txt` | `zappa` | `==0.59.0` | pinned | — |
+| `requirements.txt` | `setuptools` | `==75.1.0` | pinned | — |
+
+</details>
+
+### [PoC-SupplyCheck/SupplyCheck-Scanner](https://github.com/PoC-SupplyCheck/SupplyCheck-Scanner) 
+
+<details open><summary><b>⚡ GitHub Actions</b> — PM: `github-actions` — lockfile: _(pas de lockfile dans cet écosystème)_</summary>
+
+- **Package manager(s)** : `github-actions`
+- **Manifests** : `.github/workflows/dependency-hardening-audit.yml`, `.github/workflows/supply-chain-combined-audit.yml`, `.github/workflows/supply-chain-scan.yml`
+- **Lockfile / mécanisme de lock** : _(pas de lockfile dans cet écosystème)_
+- **Cooldown natif** : 🚫 **non configurable au niveau du repo applicatif** — GitHub Actions n'a **pas** de cooldown natif côté repo applicatif. Utiliser une **allowlist d'actions** au niveau org + **Dependabot cooldown** (`updates[].cooldown` dans `.github/dependabot.yml`) et **pinner sur SHA40**.
+- **Pinning** : total **33** — pinned **0** — floating **33** — unpinned **0** — refs externes **0**
+
+| Fichier | Dépendance | Plage / ref | État | Type |
+|---|---|---|---|---|
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/checkout` | `v6` | floating | tag majeur (mutable) |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/create-github-app-token` | `v3` | floating | tag majeur (mutable) |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/github-script` | `v9` | floating | tag majeur (mutable) |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/checkout` | `v6` | floating | tag majeur (mutable) |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/create-github-app-token` | `v3` | floating | tag majeur (mutable) |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/github-script` | `v9` | floating | tag majeur (mutable) |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/upload-artifact` | `v7` | floating | tag majeur (mutable) |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/checkout` | `v6` | floating | tag majeur (mutable) |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/download-artifact` | `v8` | floating | tag majeur (mutable) |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/github-script` | `v9` | floating | tag majeur (mutable) |
+| `.github/workflows/dependency-hardening-audit.yml` | `actions/upload-artifact` | `v7` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-combined-audit.yml` | `actions/checkout` | `v6` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-combined-audit.yml` | `actions/create-github-app-token` | `v3` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-combined-audit.yml` | `actions/github-script` | `v9` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-combined-audit.yml` | `actions/checkout` | `v6` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-combined-audit.yml` | `actions/create-github-app-token` | `v3` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-combined-audit.yml` | `actions/github-script` | `v9` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-combined-audit.yml` | `actions/upload-artifact` | `v7` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-combined-audit.yml` | `actions/checkout` | `v6` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-combined-audit.yml` | `actions/download-artifact` | `v8` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-combined-audit.yml` | `actions/github-script` | `v9` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-combined-audit.yml` | `actions/upload-artifact` | `v7` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-scan.yml` | `actions/checkout` | `v6` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-scan.yml` | `actions/create-github-app-token` | `v3` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-scan.yml` | `actions/github-script` | `v9` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-scan.yml` | `actions/checkout` | `v6` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-scan.yml` | `actions/create-github-app-token` | `v3` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-scan.yml` | `actions/github-script` | `v9` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-scan.yml` | `actions/upload-artifact` | `v7` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-scan.yml` | `actions/checkout` | `v6` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-scan.yml` | `actions/download-artifact` | `v8` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-scan.yml` | `actions/github-script` | `v9` | floating | tag majeur (mutable) |
+| `.github/workflows/supply-chain-scan.yml` | `actions/upload-artifact` | `v7` | floating | tag majeur (mutable) |
+
+</details>
+
+---
+
+## Légende
+
+- **pinned** : version exacte / SHA40 / digest immuable
+- **floating** : plage semver, tag mutable, branche, range ouverte
+- **unpinned** : aucune version spécifiée
+- **external-ref** : git+, file:, link:, workspace:, etc.
+- **cooldown configurable côté repo** : npm, yarn, pnpm, bun, deno, pip, uv, poetry, pixi, bundler
+- **cooldown non configurable côté repo** : composer, cargo (sauf plugin), nuget, maven, gradle, GitHub Actions, Docker → à gérer côté **registre / proxy / Dependabot**
