@@ -1,0 +1,61 @@
+repo,private,ecosystem,package_managers,manifest,section,package,range,pin_state,risk_type
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/dependency-hardening-audit.yml,uses,actions/checkout,v6,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/dependency-hardening-audit.yml,uses,actions/create-github-app-token,v3,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/dependency-hardening-audit.yml,uses,actions/github-script,v9,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/dependency-hardening-audit.yml,uses,actions/checkout,v6,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/dependency-hardening-audit.yml,uses,actions/create-github-app-token,v3,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/dependency-hardening-audit.yml,uses,actions/github-script,v9,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/dependency-hardening-audit.yml,uses,actions/upload-artifact,v7,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/dependency-hardening-audit.yml,uses,actions/checkout,v6,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/dependency-hardening-audit.yml,uses,actions/download-artifact,v8,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/dependency-hardening-audit.yml,uses,actions/github-script,v9,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/dependency-hardening-audit.yml,uses,actions/upload-artifact,v7,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-combined-audit.yml,uses,actions/checkout,v6,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-combined-audit.yml,uses,actions/create-github-app-token,v3,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-combined-audit.yml,uses,actions/github-script,v9,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-combined-audit.yml,uses,actions/checkout,v6,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-combined-audit.yml,uses,actions/create-github-app-token,v3,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-combined-audit.yml,uses,actions/github-script,v9,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-combined-audit.yml,uses,actions/upload-artifact,v7,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-combined-audit.yml,uses,actions/checkout,v6,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-combined-audit.yml,uses,actions/download-artifact,v8,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-combined-audit.yml,uses,actions/github-script,v9,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-combined-audit.yml,uses,actions/upload-artifact,v7,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-scan.yml,uses,actions/checkout,v6,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-scan.yml,uses,actions/create-github-app-token,v3,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-scan.yml,uses,actions/github-script,v9,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-scan.yml,uses,actions/checkout,v6,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-scan.yml,uses,actions/create-github-app-token,v3,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-scan.yml,uses,actions/github-script,v9,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-scan.yml,uses,actions/upload-artifact,v7,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-scan.yml,uses,actions/checkout,v6,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-scan.yml,uses,actions/download-artifact,v8,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-scan.yml,uses,actions/github-script,v9,floating,tag majeur (mutable)
+PoC-SupplyCheck/SupplyCheck-Scanner,false,actions,github-actions,.github/workflows/supply-chain-scan.yml,uses,actions/upload-artifact,v7,floating,tag majeur (mutable)
+PoC-SupplyCheck/PoC-SemVer-Composer,false,composer,composer,composer.json,require,laravel/framework,^10.0,floating,caret (^)
+PoC-SupplyCheck/PoC-SemVer-Composer,false,composer,composer,composer.json,require,guzzlehttp/guzzle,*,floating,wildcard
+PoC-SupplyCheck/PoC-SemVer-Composer,false,composer,composer,composer.json,require,monolog/monolog,latest,floating,
+PoC-SupplyCheck/PoC-SemVer-Composer,false,composer,composer,composer.json,require,symfony/http-foundation,~6.0,floating,tilde (~)
+PoC-SupplyCheck/PoC-SemVer-Composer,false,composer,composer,composer.json,require,nesbot/carbon,>=2.0,floating,borne supérieure ouverte
+PoC-SupplyCheck/PoC-SemVer-Composer,false,composer,composer,composer.json,require,custom/package,dev-main,floating,dev branch
+PoC-SupplyCheck/PoC-SemVer-Composer,false,composer,composer,composer.json,require-dev,phpunit/phpunit,^10.0,floating,caret (^)
+PoC-SupplyCheck/PoC-SemVer-Composer,false,composer,composer,composer.json,require-dev,fakerphp/faker,*,floating,wildcard
+PoC-SupplyCheck/PoC-SemVer-NPM,false,npm,npm,package.json,dependencies,axios,latest,floating,wildcard
+PoC-SupplyCheck/PoC-SemVer-NPM,false,npm,npm,package.json,dependencies,lodash,^4.17.21,floating,caret (^)
+PoC-SupplyCheck/PoC-SemVer-NPM,false,npm,npm,package.json,dependencies,express,4.18.2,pinned,
+PoC-SupplyCheck/PoC-SemVer-NPM,false,npm,npm,package.json,dependencies,uuid,9.0.1,pinned,
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,Flask,~=2.3.3,floating,compatible release (~=)
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,Flask-Caching,==2.0.2,pinned,
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,Flask-SQLAlchemy,==2.5.1,pinned,
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,GitHub-Flask,==3.2.0,pinned,
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,psycopg2-binary,==2.9.10,pinned,
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,pystmark,==0.5.3,pinned,
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,pytest,==7.1.2,pinned,
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,raven,==6.10.0,pinned,
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,redis,==4.4.4,pinned,
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,requests,==2.28.1,pinned,
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,SQLAlchemy,~=1.4.40,floating,compatible release (~=)
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,verlib,==0.1,pinned,
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,blinker,==1.6.2,pinned,
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,zappa,==0.59.0,pinned,
+PoC-SupplyCheck/PoC-SemVer-PIP,false,pypi,pip,requirements.txt,requirements,setuptools,==75.1.0,pinned,
